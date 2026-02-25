@@ -1,0 +1,66 @@
+desc table snowflake_sample_data.tpcds_sf100tcl.customer;
+
+desc table snowflake_sample_data.tpcds_sf100tcl.customer_address;
+
+use warehouse compute_wh;
+
+use database snowflake_learning_db;
+
+create or replace table silver.customer_dim(
+  customer_sk number autoincrement,
+  customer_id number,
+  state string,
+  start_date date,
+  end_date date,
+  is_current string
+);
+
+------initial load
+
+insert into silver.customer_dim
+(customer_id,state,start_date,end_date,is_current)
+select
+  c.c_customer_sk,
+  ca.ca_state,
+  current_date,
+  null,
+  'Y'
+  from snowflake_sample_data.tpcds_sf100tcl.customer c
+  join snowflake_sample_data.tpcds_sf100tcl.customer_address ca
+  on c.c_current_addr_sk=ca.ca_address_sk;
+
+  select count(*) from silver.customer_dim;
+
+----create a small stage
+
+create or replace table silver.customer_stage as
+select customer_id,state
+from silver.customer_dim
+where is_current='Y';
+
+-------manually update one row
+
+update silver.customer_stage
+set state='TX'
+where customer_id=79911230;
+
+select * from customer_stage where customer_id=79911230;
+
+-----implement stage 2 using merge
+
+merge into silver.customer_dim target 
+using silver.customer_stage source
+on target.CUSTOMER_ID=source.CUSTOMER_ID
+and target.is_current='Y'
+
+when matched and target.state <> source.state then
+update set
+   target.end_date=current_date,
+   target.is_current='N'
+
+when not matched then
+insert(customer_id,state,start_date,end_date,is_current)
+values(source.customer_id,source.state,current_date,null,'Y');
+
+select * from silver.customer_dim where customer_id=79911230
+order by start_date;

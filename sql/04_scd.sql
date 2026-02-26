@@ -64,3 +64,4 @@ values(source.customer_id,source.state,current_date,null,'Y');
 
 select * from silver.customer_dim where customer_id=79911230
 order by start_date;
+

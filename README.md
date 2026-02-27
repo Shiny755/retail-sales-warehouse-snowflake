@@ -11,9 +11,6 @@ Deployment Process:
 4. Create Pull Request.
 5. Merge to main after review.
 
-All changes must pass validation checks before merge. 
-
-=======================================================
 
 ## 🎨 Dashboard Design & UX Workflow
 
@@ -40,3 +37,4 @@ The final implementation was recreated in Metabase based on the approved Figma w
 
 
    See `/docs/dashboard_design/` for wireframes and final dashboard screenshots.
+All changes must pass validation checks before merge.
